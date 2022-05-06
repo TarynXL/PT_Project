@@ -313,3 +313,4 @@ ML_GRF_stance_N_outlier <- anti_join(ML_GRF_stance_N_1,similar_group_IDs["ID2"],
 write.csv(ML_GRF_stance_N_outlier,"ML_GRF_stance_N_outlier.csv", row.names = FALSE)
 
 
+
