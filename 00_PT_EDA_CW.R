@@ -268,3 +268,48 @@ ML_GRF_stance_N_VAR_plot <- ggplot(ML_GRF_stance_N_var3) + geom_line(aes(x = tim
   theme(legend.position="none") + ggtitle("ML_GRF_stance_N Between Trial Variability") + ylab("Variance")
 
 ML_GRF_stance_N_VAR_plot
+
+
+
+
+##Subset down to people who have similar readings -- closer to the mean;
+
+ML_GRF_stance_N_mean <- ML_GRF_stance_N_2 %>% group_by(time) %>% summarise(mean_value = mean(Value)) %>% arrange(time)
+
+ML_GRF_stance_N_2_Diff <- inner_join(ML_GRF_stance_N_2,ML_GRF_stance_N_mean,by = "time") %>% mutate(abs_diff = abs(Value - mean_value))
+
+ML_GRF_stance_N_2_Overall_Diff <- ML_GRF_stance_N_2_Diff %>% group_by(ID2) %>% summarise(Overall_diff = sum(abs_diff))
+
+lower_bound = mean(ML_GRF_stance_N_2_Overall_Diff$Overall_diff) - sd(ML_GRF_stance_N_2_Overall_Diff$Overall_diff)
+upper_bound = mean(ML_GRF_stance_N_2_Overall_Diff$Overall_diff) + sd(ML_GRF_stance_N_2_Overall_Diff$Overall_diff)
+
+similar_group_IDs <- ML_GRF_stance_N_2_Overall_Diff %>% filter(Overall_diff>lower_bound & Overall_diff<upper_bound)
+
+
+ML_GRF_stance_N_similar <- inner_join(ML_GRF_stance_N_3,similar_group_IDs, by  = "ID2" )
+
+mycolors <- rand_color(15696)
+ML_GRF_stance_N_plot1 <- ggplot(ML_GRF_stance_N_3) + geom_line(aes(x = time, y = Value, group = ID2, color = ID2)) +
+  scale_color_manual(values = mycolors) +
+  theme(legend.position="none") + ggtitle("ML_GRF_stance_N All Particiapnts")
+
+mycolors <- rand_color(12752)
+ML_GRF_stance_N_plot2 <- ggplot(ML_GRF_stance_N_similar) + geom_line(aes(x = time, y = Value, group = ID2, color = ID2)) +
+  scale_color_manual(values = mycolors) +
+  theme(legend.position="none") + ggtitle("ML_GRF_stance_N Similar Participants")
+
+
+require(gridExtra)
+grid.arrange(ML_GRF_stance_N_plot1, ML_GRF_stance_N_plot2, ncol = 1 )
+
+
+ML_GRF_stance_N_subset <- inner_join(ML_GRF_stance_N_1,similar_group_IDs["ID2"], by = "ID2" )
+
+write.csv(ML_GRF_stance_N_subset,"ML_GRF_stance_N_subset.csv", row.names = FALSE)
+
+
+ML_GRF_stance_N_outlier <- anti_join(ML_GRF_stance_N_1,similar_group_IDs["ID2"], by = "ID2" )
+
+write.csv(ML_GRF_stance_N_outlier,"ML_GRF_stance_N_outlier.csv", row.names = FALSE)
+
+
